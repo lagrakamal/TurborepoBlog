@@ -1,0 +1,41 @@
+
+> front@0.1.0 build
+> next build
+
+   ▲ Next.js 15.3.4
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 7.0s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/11) ...
+   Generating static pages (2/11) 
+   Generating static pages (5/11) 
+   Generating static pages (8/11) 
+ ✓ Generating static pages (11/11)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                      505 B         111 kB
+├ ƒ /_not-found                            975 B         102 kB
+├ ƒ /api/auth/google/callback              145 B         102 kB
+├ ƒ /api/auth/signout                      145 B         102 kB
+├ ƒ /auth/signin                         2.62 kB         116 kB
+├ ƒ /auth/signup                         2.72 kB         116 kB
+├ ƒ /blog/[slug]/[id]                    19.7 kB         160 kB
+├ ƒ /user/create-post                      435 B         246 kB
+├ ƒ /user/posts                            749 B         136 kB
+├ ƒ /user/posts/[id]/delete              1.39 kB         115 kB
+└ ƒ /user/posts/[id]/update                540 B         246 kB
++ First Load JS shared by all             101 kB
+  ├ chunks/315-bc904f8d098e385a.js       46.3 kB
+  ├ chunks/87c73c54-c28054acee5b9c1a.js  53.2 kB
+  └ other shared chunks (total)          1.99 kB
+
+
+ƒ Middleware                             44.6 kB
+
+ƒ  (Dynamic)  server-rendered on demand
+

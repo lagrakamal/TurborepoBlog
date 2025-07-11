@@ -1,0 +1,33 @@
+{
+  "name": "blog-turborepo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "postinstall": "prisma generate --schema=apps/api/prisma/schema.prisma"
+  },
+  "packageManager": "npm@11.4.1",
+  "workspaces": [
+    "apps/*"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/passport-jwt": "^4.0.1",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@nestjs/passport": "^11.0.5",
+    "@prisma/client": "^5.22.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1"
+  }
+}

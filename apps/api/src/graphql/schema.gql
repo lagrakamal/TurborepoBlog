@@ -1,0 +1,130 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type User {
+  id: Int!
+  name: String!
+  email: String!
+  bio: String
+  avatar: String
+  posts: [Post!]!
+  comments: [CommentEntity!]!
+}
+
+type CommentEntity {
+  id: Int!
+  content: String!
+  post: Post!
+  author: User!
+  createdAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Tag {
+  id: Int!
+  name: String!
+  posts: [Post!]!
+}
+
+type Count {
+  likes: Int!
+  comments: Int!
+}
+
+type Post {
+  id: Int!
+  title: String!
+  slug: String
+  thumbnail: String
+  content: String!
+  published: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  author: User!
+  tags: [Tag!]!
+  comments: [CommentEntity!]!
+  _count: Count!
+}
+
+type AuthPayload {
+  id: Float!
+  name: String!
+  avatar: String
+  accessToken: String!
+}
+
+type Query {
+  posts(skip: Int, take: Int): [Post!]!
+  postCount: Int!
+  getPostById(id: Int!): Post!
+  getUserPosts(skip: Int, take: Int): [Post!]!
+  userPostCount: Int!
+  user(id: Int!): User
+  users: [User!]!
+  getPostComments(postId: Int!, take: Int = 12, skip: Int = 0): [CommentEntity!]!
+  postCommentCount(postId: Int!): Int!
+  postLikesCount(postId: Int!): Int!
+  userLikedPost(postId: Int!): Boolean!
+}
+
+type Mutation {
+  createPost(createPostInput: CreatePostInput!): Post!
+  updatePost(updatePostInput: UpdatePostInput!): Post!
+  deletePost(postId: Int!): Boolean!
+  createUser(createUserInput: CreateUserInput!): User!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  deleteUser(id: Int!): User!
+  createComment(createCommentInput: CreateCommentInput!): CommentEntity!
+  likePost(postId: Int!): Boolean!
+  unlikePost(postId: Int!): Boolean!
+  signIn(signInInput: SignInInput!): AuthPayload!
+}
+
+input CreatePostInput {
+  title: String!
+  content: String!
+  thumbnail: String
+  tags: [String!]!
+  published: Boolean!
+}
+
+input UpdatePostInput {
+  title: String
+  content: String
+  thumbnail: String
+  tags: [String!]
+  published: Boolean
+  postId: Int!
+}
+
+input CreateUserInput {
+  name: String!
+  password: String!
+  email: String!
+  bio: String
+  avatar: String
+}
+
+input UpdateUserInput {
+  name: String
+  password: String
+  email: String
+  bio: String
+  avatar: String
+  id: Int!
+}
+
+input CreateCommentInput {
+  postId: Int!
+  content: String!
+}
+
+input SignInInput {
+  email: String!
+  password: String!
+}
