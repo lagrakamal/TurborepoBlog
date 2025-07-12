@@ -3,16 +3,18 @@ import { CommentService } from '../application/comment.service';
 import { CommentEntity } from '../domain/entities/comment.entity';
 import { CreateCommentInput } from '../application/dto/create-comment.input';
 import { DEFAULT_PAGE_SIZE } from '../../constants';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, Logger } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/infrastructure/guards/jwt-auth/jwt-auth.guard';
 import { GqlCurrentUser } from '../../auth/interface/decorators/current-user.decorator';
 
 @Resolver(() => CommentEntity)
 export class CommentResolver {
+  private readonly logger = new Logger(CommentResolver.name);
+
   constructor(private readonly commentService: CommentService) { }
 
   @Query(() => [CommentEntity])
-  getPostComments(
+  async getPostComments(
     @Args('postId', { type: () => Int! }) postId: number,
     @Args('take', {
       type: () => Int,
@@ -27,21 +29,38 @@ export class CommentResolver {
     })
     skip: number,
   ) {
-    return this.commentService.findOneByPost({ postId, take, skip });
+    this.logger.log('Fetching comments for post', { postId, take, skip });
+    const comments = await this.commentService.findOneByPost({ postId, take, skip });
+    this.logger.log('Comments fetched successfully', { postId, count: comments.length });
+    return comments;
   }
 
   @Query(() => Int)
-  postCommentCount(@Args('postId', { type: () => Int! }) postId: number) {
-    return this.commentService.count(postId);
+  async postCommentCount(@Args('postId', { type: () => Int! }) postId: number) {
+    this.logger.log('Counting comments for post', { postId });
+    const count = await this.commentService.count(postId);
+    this.logger.log('Comment count retrieved', { postId, count });
+    return count;
   }
 
   @UseGuards(JwtAuthGuard)
   @Mutation(() => CommentEntity)
-  createComment(
+  async createComment(
     @GqlCurrentUser() user,
     @Args('createCommentInput') createCommentInput: CreateCommentInput,
   ) {
     const authorId = user.id;
-    return this.commentService.create(createCommentInput, authorId);
+    this.logger.log('Creating new comment', {
+      authorId,
+      postId: createCommentInput.postId,
+      contentLength: createCommentInput.content.length
+    });
+    const comment = await this.commentService.create(createCommentInput, authorId);
+    this.logger.log('Comment created successfully', {
+      commentId: comment.id,
+      postId: comment.post.id,
+      authorId
+    });
+    return comment;
   }
 }

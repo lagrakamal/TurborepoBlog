@@ -1,83 +1,116 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { SignInInput } from './dto/signin.input';
 import { PrismaService } from '../../prisma/prisma.service';
 import { verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
 import { CreateUserInput } from '../../user/application/dto/create-user.input';
 import { AuthJwtPayload } from '../domain/types/auth-jwtPayload';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) { }
 
   async validateLocalUser({ email, password }: SignInInput) {
+    this.logger.log('Validating local user', { email });
+
     const user = await this.prisma.user.findUnique({
       where: {
         email,
       },
     });
 
-    if (!user) throw new UnauthorizedException('User Not Found');
+    if (!user) {
+      this.logger.warn('User not found during validation', { email });
+      throw new UnauthorizedException('User Not Found');
+    }
 
     const passwordMatched = await verify(user.password, password);
 
-    if (!passwordMatched)
+    if (!passwordMatched) {
+      this.logger.warn('Invalid credentials during validation', { email });
       throw new UnauthorizedException('Invalid Credentials!');
+    }
 
+    this.logger.log('Local user validated successfully', { userId: user.id, email });
     return user;
   }
 
-  async generateToken(userId: number) {
-    const payload: AuthJwtPayload = { sub: userId };
-    const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '1h',
-    });
-    return { accessToken };
-  }
+  async login(user: any) {
+    this.logger.log('Processing login', { email: user.email });
 
-  async login(user: User) {
-    const { accessToken } = await this.generateToken(user.id);
+    const payload: AuthJwtPayload = {
+      sub: user.id,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+
+    this.logger.log('Login successful', { userId: user.id, email: user.email });
+
     return {
       id: user.id,
       name: user.name,
+      email: user.email,
       avatar: user.avatar,
       accessToken,
     };
   }
 
-  async validateJwtUser(userId: number) {
-    const user = await this.prisma.user.findUnique({
+  async findOrCreateUser(profile: any) {
+    this.logger.log('Finding or creating user from profile', { email: profile.email });
+
+    let user = await this.prisma.user.findUnique({
       where: {
-        id: userId,
+        email: profile.email,
       },
     });
 
+    if (!user) {
+      this.logger.log('Creating new user from profile', { email: profile.email });
+
+      const createUserInput: CreateUserInput = {
+        email: profile.email,
+        name: profile.name,
+        avatar: profile.picture,
+        password: 'OAuthNoPassword',
+      };
+
+      user = await this.prisma.user.create({
+        data: createUserInput,
+      });
+
+      this.logger.log('New user created from profile', { userId: user.id, email: user.email });
+    } else {
+      this.logger.log('Existing user found from profile', { userId: user.id, email: user.email });
+    }
+
+    return user;
+  }
+
+  async validateJwtUser(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
     if (!user) throw new UnauthorizedException('User not found!');
-    const currentUser = { id: user.id };
-    return currentUser;
+    return { id: user.id };
   }
 
   async validateGoogleUser(googleUser: CreateUserInput) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: googleUser.email,
-      },
+    let user = await this.prisma.user.findUnique({
+      where: { email: googleUser.email },
     });
     if (user) {
       const { password, ...authUser } = user;
       return authUser;
     }
-
     const dbUser = await this.prisma.user.create({
-      data: {
-        ...googleUser,
-      },
+      data: { ...googleUser },
     });
     const { password, ...authUser } = dbUser;
-    authUser;
+    return authUser;
   }
 }

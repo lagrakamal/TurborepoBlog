@@ -1,4 +1,44 @@
-node_modules
+# Node modules
+node_modules/
 **/node_modules/
-**/dist
-**/build
+
+# Build outputs
+**/dist/
+**/build/
+apps/front/.next/
+apps/front/out/
+
+# Turborepo cache
+.turbo/
+
+# Env files
+.env
+apps/api/.env
+apps/front/.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# IDE/editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+*.local
+
+# Test/coverage
+coverage/
+
+# Sonstiges
+*.tsbuildinfo
+
+# Nicht ignorieren (wichtig für DB und Seeds)
+!apps/api/prisma/migrations/
+!apps/api/prisma/schema.prisma
+!apps/api/prisma/seed.ts

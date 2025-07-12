@@ -3,16 +3,17 @@ import { PostService } from '../application/post.service';
 import { Post } from '../domain/entities/post.entity';
 import { CreatePostInput } from '../application/dto/create-post.input';
 import { UpdatePostInput } from '../application/dto/update-post.input';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, Logger } from '@nestjs/common';
 import { DEFAULT_PAGE_SIZE } from '../../constants';
 import { JwtAuthGuard } from '../../auth/infrastructure/guards/jwt-auth/jwt-auth.guard';
 import { GqlCurrentUser } from '../../auth/interface/decorators/current-user.decorator';
 
 @Resolver(() => Post)
 export class PostResolver {
+  private readonly logger = new Logger(PostResolver.name);
+
   constructor(private readonly postService: PostService) { }
 
-  // @UseGuards(JwtAuthGuard)
   @Query(() => [Post], { name: 'posts' })
   findAll(
     @Context() context,
@@ -20,8 +21,12 @@ export class PostResolver {
     @Args('take', { nullable: true, type: () => Int }) take?: number,
   ) {
     const user = context.req.user;
-    console.log({ user });
-
+    this.logger.log('Fetching all posts', {
+      userId: user?.id,
+      skip,
+      take,
+      hasUser: !!user
+    });
     return this.postService.findAll({ skip, take });
   }
 
@@ -67,7 +72,6 @@ export class PostResolver {
     @GqlCurrentUser() user,
   ) {
     const authorId = user.id;
-
     return this.postService.create({ createPostInput, authorId });
   }
 

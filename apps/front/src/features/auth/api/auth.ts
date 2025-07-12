@@ -81,3 +81,8 @@ export async function signIn(
   revalidatePath("/");
   redirect("/");
 }
+
+export async function signOut() {
+  await fetch("/api/auth/signout", { method: "POST" });
+  // Optional: lokale Session/Cookies löschen, falls nötig
+}

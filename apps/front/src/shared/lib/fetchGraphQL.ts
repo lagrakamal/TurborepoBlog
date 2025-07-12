@@ -1,6 +1,6 @@
 import { BACKEND_URL } from "./constants";
 import { getSession } from "./session";
-
+import { signOut } from "@/features/auth/api/auth";
 export const fetchGraphQL = async (query: string, variables = {}) => {
   const response = await fetch(`${BACKEND_URL}/graphql`, {
     method: "POST",
@@ -12,6 +12,12 @@ export const fetchGraphQL = async (query: string, variables = {}) => {
       variables,
     }),
   });
+
+  if (response.status === 401) {
+    await signOut();
+    window.location.href = "/auth/signin";
+    throw new Error("Session expired. Please log in again.");
+  }
 
   const result = await response.json();
   if (result.errors) {
@@ -35,6 +41,12 @@ export const authFetchGraphQL = async (query: string, variables = {}) => {
       variables,
     }),
   });
+
+  if (response.status === 401) {
+    await signOut();
+    window.location.href = "/auth/signin";
+    throw new Error("Session expired. Please log in again.");
+  }
 
   const result = await response.json();
   if (result.errors) {

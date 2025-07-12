@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { UserRepository } from '../../domain/repositories/user.repository';
 import { hash } from 'argon2';
@@ -63,14 +63,21 @@ export class UserPrismaRepository implements UserRepository {
   async create(createUserInput: CreateUserInput): Promise<User> {
     const { password, ...user } = createUserInput;
     const hashedPassword = await hash(password);
-    const prismaUser = await this.prisma.user.create({
-      data: {
-        password: hashedPassword,
-        ...user,
-      },
-      include: { posts: true, comments: true },
-    });
-    return mapPrismaUserToEntity(prismaUser)!;
+    try {
+      const prismaUser = await this.prisma.user.create({
+        data: {
+          password: hashedPassword,
+          ...user,
+        },
+        include: { posts: true, comments: true },
+      });
+      return mapPrismaUserToEntity(prismaUser)!;
+    } catch (error: unknown) {
+      if (typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === 'P2002') {
+        throw new ConflictException('User with this email already exists');
+      }
+      throw error;
+    }
   }
 
   async update(updateUserInput: UpdateUserInput): Promise<User> {
